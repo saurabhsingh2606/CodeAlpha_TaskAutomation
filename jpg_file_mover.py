@@ -1,146 +1,155 @@
 # ============================================================
 #  TASK 3 — Task Automation with Python Scripts
 #  CodeAlpha Python Programming Internship
-#  Script: Move all .jpg files to a new folder
+#  Script: Automatically move all .jpg files to a new folder
+#  Author: Saurabh Singh Tanwar
+#  Date  : June 2025
 # ============================================================
 
-# --- Import kiye hain 2 tools ---
-import os      # os = Operating System se baat karne ka tool
-               # (files, folders dhundhna, banana — sab iske through)
+# os module — used for file/folder operations
+# (checking existence, listing files, creating directories, building paths)
+import os
 
-import shutil  # shutil = file ko move/copy karne ka tool
-               # (jaise ctrl+x, ctrl+v karna — but code se!)
+# shutil module — used for moving and copying files
+# (works like Cut + Paste on your computer, but through code)
+import shutil
 
 
 # ============================================================
-# FUNCTION 1 — Folders set karo
+# FUNCTION 1 — Get source and destination folder paths
 # ============================================================
 def get_folders():
     """
-    User se source aur destination folder ka path lo.
-    Source  = jahan .jpg files abhi hain
-    Destination = jahan move karni hain
+    Prompt the user to enter the source and destination folder paths.
+    Source      = folder where .jpg files currently exist
+    Destination = folder where .jpg files will be moved to
     """
 
     print("\n" + "=" * 50)
     print("   📁  JPG FILE MOVER — CodeAlpha Task 3")
     print("=" * 50)
 
-    # User se source folder path maango
-    print("\n📂 SOURCE FOLDER kahan hai?")
-    print("   (Woh folder jahan .jpg files hain)")
+    # Ask user for the source folder path
+    print("\n📂 SOURCE FOLDER")
+    print("   (The folder that contains your .jpg files)")
     print("   Example: C:\\Users\\Saurabh\\Pictures")
-    print("   Ya press Enter for current folder (jahaan script hai)\n")
+    print("   Press Enter to use the current folder\n")
 
-    source = input("   Source folder path: ").strip()
+    source = input("   Enter source folder path: ").strip()
 
-    # Agar kuch nahi diya toh current folder use karo
+    # If the user pressed Enter without typing anything,
+    # use the current working directory as the source
     if source == "":
         source = os.getcwd()   # getcwd = Get Current Working Directory
-        print(f"   ✅ Current folder use hoga: {source}")
+        print(f"   ✅ Using current folder: {source}")
 
-    # User se destination folder path maango
-    print("\n📁 DESTINATION FOLDER kahan banana hai?")
-    print("   (Jahan .jpg files move hongi)")
+    # Ask user for the destination folder path
+    print("\n📁 DESTINATION FOLDER")
+    print("   (The folder where .jpg files will be moved)")
     print("   Example: C:\\Users\\Saurabh\\JPG_Files")
-    print("   Ya press Enter for 'JPG_Files' folder (automatically banega)\n")
+    print("   Press Enter to create a 'JPG_Files' folder automatically\n")
 
-    destination = input("   Destination folder path: ").strip()
+    destination = input("   Enter destination folder path: ").strip()
 
-    # Agar kuch nahi diya toh source ke andar 'JPG_Files' folder banao
+    # If the user pressed Enter without typing anything,
+    # create a default 'JPG_Files' folder inside the source folder
     if destination == "":
         destination = os.path.join(source, "JPG_Files")
-        print(f"   ✅ Default folder use hoga: {destination}")
+        print(f"   ✅ Default destination: {destination}")
 
     return source, destination
 
 
 # ============================================================
-# FUNCTION 2 — Source folder exist karti hai ya nahi check karo
+# FUNCTION 2 — Verify that the source folder exists
 # ============================================================
 def check_source_folder(source):
     """
-    Check karo ki source folder sach mein exist karti hai.
-    Agar nahi toh error do aur band karo.
+    Check whether the given source folder path actually exists.
+    Returns True if valid, False if not found.
     """
 
-    # os.path.exists() = check karta hai ki path exist karta hai ya nahi
+    # os.path.exists() returns True if the path exists, False otherwise
     if not os.path.exists(source):
-        print(f"\n❌ ERROR: Source folder nahi mili!")
-        print(f"   Path: {source}")
-        print(f"   Dobara check karo path sahi hai ya nahi.\n")
-        return False   # False = kuch galat hai
+        print(f"\n❌ ERROR: Source folder not found!")
+        print(f"   Path : {source}")
+        print(f"   Please double-check the folder path and try again.\n")
+        return False   # Signal that something went wrong
 
-    return True        # True = sab sahi hai
+    return True        # Signal that everything is fine
 
 
 # ============================================================
-# FUNCTION 3 — Destination folder banao (agar pehle se nahi hai)
+# FUNCTION 3 — Create the destination folder if it doesn't exist
 # ============================================================
 def create_destination_folder(destination):
     """
-    Destination folder banao agar pehle se exist nahi karti.
+    Create the destination folder if it does not already exist.
     """
 
-    # os.path.exists() = check karo folder pehle se hai ya nahi
+    # Check if the destination folder already exists
     if not os.path.exists(destination):
 
-        # os.makedirs() = naya folder banao
+        # os.makedirs() creates the folder (and any parent folders if needed)
         os.makedirs(destination)
-        print(f"\n✅ Naya folder banaya gaya: {destination}")
+        print(f"\n✅ New folder created: {destination}")
 
     else:
-        print(f"\n✅ Folder pehle se exist karta hai: {destination}")
+        print(f"\n✅ Destination folder already exists: {destination}")
 
 
 # ============================================================
-# FUNCTION 4 — .jpg files dhundho aur move karo
+# FUNCTION 4 — Scan and move all .jpg files
 # ============================================================
 def move_jpg_files(source, destination):
     """
-    Source folder mein saari .jpg files dhundho
-    aur destination folder mein move karo.
+    Scan the source folder for all .jpg files and move them
+    to the destination folder.
+    Returns three lists: moved, skipped, and error files.
     """
 
-    moved_files   = []   # Successfully move hue files ki list
-    skipped_files = []   # Jo files skip hui (duplicate naam)
-    error_files   = []   # Jo files move nahi huiyin (koi error)
+    moved_files   = []   # Files successfully moved
+    skipped_files = []   # Files skipped due to duplicate names
+    error_files   = []   # Files that encountered an error
 
     print(f"\n🔍 Scanning folder: {source}")
     print("-" * 50)
 
-    # os.listdir() = folder ke andar ki saari files ki list do
+    # os.listdir() returns a list of all files and folders in the directory
     all_files = os.listdir(source)
 
-    # Ek ek file check karo
+    # Iterate through each file in the source folder
     for file_name in all_files:
 
-        # .lower() = sabko lowercase karo taaki .JPG bhi .jpg ban jaye
-        # .endswith() = check karo file ka naam .jpg se khatam hota hai ya nahi
+        # .lower() converts the filename to lowercase
+        # so that both ".jpg" and ".JPG" are detected correctly
+        # .endswith() checks if the filename ends with ".jpg"
         if file_name.lower().endswith(".jpg"):
 
-            # Source file ka poora path banao
-            # os.path.join() = folder + file_name = full path
+            # Build the full path for the source file
+            # os.path.join() safely combines folder path + filename
             source_path      = os.path.join(source, file_name)
 
-            # Destination file ka poora path banao
+            # Build the full path for the destination file
             destination_path = os.path.join(destination, file_name)
 
-            # Check karo kya same naam ki file destination mein pehle se hai
+            # Check if a file with the same name already exists
+            # in the destination folder to avoid overwriting
             if os.path.exists(destination_path):
-                print(f"   ⚠️  SKIP (already exists): {file_name}")
+                print(f"   ⚠️  SKIPPED (already exists): {file_name}")
                 skipped_files.append(file_name)
-                continue   # Yeh file skip karo, agle par jao
+                continue   # Skip this file and move to the next one
 
-            # File ko move karo!
+            # Attempt to move the file using shutil.move()
+            # try-except ensures the program doesn't crash on errors
             try:
-                # shutil.move() = file ko source se destination pe move karo
+                # shutil.move() moves the file from source to destination
                 shutil.move(source_path, destination_path)
                 print(f"   ✅ MOVED: {file_name}")
                 moved_files.append(file_name)
 
             except Exception as error:
-                # Koi bhi unexpected error aaye toh
+                # Catch any unexpected error and log it
                 print(f"   ❌ ERROR moving {file_name}: {error}")
                 error_files.append(file_name)
 
@@ -148,60 +157,71 @@ def move_jpg_files(source, destination):
 
 
 # ============================================================
-# FUNCTION 5 — Final Summary print karo
+# FUNCTION 5 — Display final summary
 # ============================================================
 def print_summary(moved_files, skipped_files, error_files, destination):
     """
-    Kaam khatam hone ke baad ek clean summary dikhao.
+    Display a clean summary of the operation results.
     """
 
     print("\n" + "=" * 50)
     print("   📊  SUMMARY")
     print("=" * 50)
 
-    print(f"\n   ✅  Successfully moved  : {len(moved_files)} files")
-    print(f"   ⚠️   Skipped (duplicate) : {len(skipped_files)} files")
-    print(f"   ❌  Errors              : {len(error_files)} files")
+    print(f"\n   ✅  Successfully moved  : {len(moved_files)} file(s)")
+    print(f"   ⚠️   Skipped (duplicate) : {len(skipped_files)} file(s)")
+    print(f"   ❌  Errors              : {len(error_files)} file(s)")
 
-    # Agar koi file move hui toh unke naam bhi dikhao
+    # If files were moved, list their names
     if moved_files:
-        print(f"\n   📁  Files moved to: {destination}")
-        print("   Moved files:")
+        print(f"\n   📁  Moved to: {destination}")
+        print("   Files moved:")
         for file in moved_files:
             print(f"      → {file}")
 
-    # Agar koi file nahi mili
+    # If no .jpg files were found at all
     if len(moved_files) == 0 and len(skipped_files) == 0:
-        print("\n   ℹ️  Source folder mein koi .jpg file nahi mili!")
-        print("      Kuch .jpg files daalo aur dobara try karo.")
+        print("\n   ℹ️  No .jpg files found in the source folder.")
+        print("      Please add some .jpg files and try again.")
 
     print("\n" + "=" * 50 + "\n")
 
 
 # ============================================================
-# MAIN FUNCTION — Sab kuch yahan se chalta hai
+# MAIN FUNCTION — Entry point of the script
 # ============================================================
 def main():
+    """
+    Main function — orchestrates all steps in sequence:
+    1. Get folder paths from user
+    2. Validate source folder
+    3. Create destination folder
+    4. Move .jpg files
+    5. Display summary
+    """
 
-    # Step 1 — User se folders ka path lo
+    # Step 1 — Get source and destination folder paths from the user
     source, destination = get_folders()
 
-    # Step 2 — Source folder exist karti hai? Check karo
+    # Step 2 — Verify that the source folder exists
+    # If it doesn't, stop execution immediately
     if not check_source_folder(source):
-        return   # Agar folder nahi hai toh band karo
+        return
 
-    # Step 3 — Destination folder banao (agar pehle se nahi hai)
+    # Step 3 — Create the destination folder if it doesn't already exist
     create_destination_folder(destination)
 
-    # Step 4 — .jpg files dhundho aur move karo
+    # Step 4 — Scan for .jpg files and move them
     moved, skipped, errors = move_jpg_files(source, destination)
 
-    # Step 5 — Summary dikhao
+    # Step 5 — Display the final result summary
     print_summary(moved, skipped, errors, destination)
 
 
 # ============================================================
-# Entry Point — Jab file run hoti hai tab main() call hota hai
+# Entry Point
+# This block ensures main() only runs when this file is
+# executed directly — not when imported as a module
 # ============================================================
 if __name__ == "__main__":
     main()
